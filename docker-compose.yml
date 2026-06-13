@@ -1,0 +1,107 @@
+name: media-stack
+
+# Shared environment configuration block for LinuxServer.io containers
+x-common-env: &common-env
+  PUID: ${PUID}
+  PGID: ${PGID}
+  TZ: ${TZ}
+  UMASK: "002"
+
+services:
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    environment:
+      <<: *common-env
+      SONARR__AUTH__APIKEY: ${SONARR_API_KEY}
+    volumes:
+      - ${CONFIG_ROOT}/sonarr:/config
+      - ${MEDIA_ROOT}:/data
+    ports:
+      - "8989:8989"
+    restart: unless-stopped
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    environment:
+      <<: *common-env
+      RADARR__AUTH__APIKEY: ${RADARR_API_KEY}
+    volumes:
+      - ${CONFIG_ROOT}/radarr:/config
+      - ${MEDIA_ROOT}:/data
+    ports:
+      - "7878:7878"
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    environment:
+      <<: *common-env
+      PROWLARR__AUTH__APIKEY: ${PROWLARR_API_KEY}
+    volumes:
+      - ${CONFIG_ROOT}/prowlarr:/config
+    ports:
+      - "9696:9696"
+    restart: unless-stopped
+
+  rdtclient:
+    image: rogerfar/rdtclient:latest
+    container_name: rdtclient
+    environment:
+      <<: *common-env
+    volumes:
+      # RDT Client app database/config
+      - ${CONFIG_ROOT}/rdtclient:/data/db
+      # Shared mount to allow Sonarr/Radarr to find downloaded files
+      - ${MEDIA_ROOT}:/data
+    ports:
+      - "6500:6500"
+    restart: unless-stopped
+
+  # Gluetun VPN Client (Optional: activated via --profile torrent-vpn)
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    profiles: ["torrent-vpn"]
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    environment:
+      TZ: ${TZ}
+      # VPN Provider configurations. Swap these out according to your VPN provider's docs:
+      # See: https://github.com/qdm12/gluetun-wiki/blob/main/setup/providers.md
+      VPN_SERVICE_PROVIDER: ${VPN_SERVICE_PROVIDER}
+      VPN_TYPE: ${VPN_TYPE}
+      WIREGUARD_PRIVATE_KEY: ${WIREGUARD_PRIVATE_KEY}
+      WIREGUARD_ADDRESSES: ${WIREGUARD_ADDRESSES}
+      SERVER_COUNTRIES: ${SERVER_COUNTRIES}
+    volumes:
+      - ${CONFIG_ROOT}/gluetun:/gluetun
+    ports:
+      # qBittorrent WebUI is accessed via the Gluetun container since qBittorrent shares its network stack
+      - "8080:8080"
+      # Torrent port forward (requires matching configuration on VPN provider if port forwarding is used)
+      - "6881:6881/tcp"
+      - "6881:6881/udp"
+    restart: unless-stopped
+
+  # qBittorrent Torrent Client (Optional: activated via --profile torrent-vpn)
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    profiles: ["torrent-vpn"]
+    # Route all qBittorrent traffic through the Gluetun VPN container
+    network_mode: "service:gluetun"
+    depends_on:
+      - gluetun
+    environment:
+      <<: *common-env
+      WEBUI_PORT: 8080
+      TORRENTING_PORT: 6881
+    volumes:
+      - ${CONFIG_ROOT}/qbittorrent:/config
+      - ${MEDIA_ROOT}:/data
+    restart: unless-stopped
