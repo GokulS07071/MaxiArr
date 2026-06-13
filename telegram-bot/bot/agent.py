@@ -1,13 +1,15 @@
 import logging
+
 import httpx
 
 logger = logging.getLogger("telegram_bot.agent")
 
+
 class MediaAgent:
     def __init__(self, sonarr_url: str, sonarr_api_key: str, radarr_url: str, radarr_api_key: str):
-        self.sonarr_url = sonarr_url.rstrip('/')
+        self.sonarr_url = sonarr_url.rstrip("/")
         self.sonarr_api_key = sonarr_api_key
-        self.radarr_url = radarr_url.rstrip('/')
+        self.radarr_url = radarr_url.rstrip("/")
         self.radarr_api_key = radarr_api_key
         self.client = httpx.AsyncClient(timeout=30.0)
 
@@ -59,15 +61,23 @@ class MediaAgent:
         """Add a movie to Radarr library."""
         root_folder = await self._get_radarr_root_folder()
         if not root_folder:
-            return False, None, "Could not resolve Radarr root folder. Check your settings."
+            return (
+                False,
+                None,
+                "Could not resolve Radarr root folder. Check your settings.",
+            )
 
         url = f"{self.radarr_url}/api/v3/movie"
         headers = {"X-Api-Key": self.radarr_api_key}
-        
+
         # Check if movie already exists
         existing_movie = await self.find_existing_movie(movie_data.get("tmdbId"))
         if existing_movie:
-            return True, existing_movie.get("id"), f"Movie is already in Radarr: '{movie_data.get('title')}'."
+            return (
+                True,
+                existing_movie.get("id"),
+                f"Movie is already in Radarr: '{movie_data.get('title')}'.",
+            )
 
         payload = {
             "title": movie_data.get("title"),
@@ -78,9 +88,7 @@ class MediaAgent:
             "rootFolderPath": root_folder,
             "qualityProfileId": quality_profile_id,
             "monitored": True,
-            "addOptions": {
-                "searchForMovie": False
-            }
+            "addOptions": {"searchForMovie": False},
         }
 
         try:
@@ -89,7 +97,11 @@ class MediaAgent:
                 data = response.json()
                 return True, data.get("id"), f"Added '{movie_data.get('title')}'!"
             else:
-                return False, None, f"Radarr returned status {response.status_code}: {response.text}"
+                return (
+                    False,
+                    None,
+                    f"Radarr returned status {response.status_code}: {response.text}",
+                )
         except Exception as e:
             logger.error(f"Failed to add movie to Radarr: {e}")
             return False, None, f"Failed to add movie: {str(e)}"
@@ -121,7 +133,6 @@ class MediaAgent:
         except Exception as e:
             logger.error(f"Error getting movie releases: {e}")
             return []
-
 
     # --- SONARR (TV Shows) ---
 
@@ -181,7 +192,11 @@ class MediaAgent:
         """Add a TV show/series to Sonarr library."""
         root_folder = await self._get_sonarr_root_folder()
         if not root_folder:
-            return False, None, "Could not resolve Sonarr root folder. Check your settings."
+            return (
+                False,
+                None,
+                "Could not resolve Sonarr root folder. Check your settings.",
+            )
 
         language_profile_id = await self._get_sonarr_language_profile()
         if not language_profile_id:
@@ -193,7 +208,11 @@ class MediaAgent:
         # Check if series already exists
         existing_series = await self.find_existing_series(series_data.get("tvdbId"))
         if existing_series:
-            return True, existing_series.get("id"), f"Series is already in Sonarr: '{series_data.get('title')}'."
+            return (
+                True,
+                existing_series.get("id"),
+                f"Series is already in Sonarr: '{series_data.get('title')}'.",
+            )
 
         payload = {
             "title": series_data.get("title"),
@@ -206,9 +225,7 @@ class MediaAgent:
             "languageProfileId": language_profile_id,
             "monitored": True,
             "seasonFolder": True,
-            "addOptions": {
-                "searchForMissingEpisodes": False
-            }
+            "addOptions": {"searchForMissingEpisodes": False},
         }
 
         try:
@@ -217,7 +234,11 @@ class MediaAgent:
                 data = response.json()
                 return True, data.get("id"), f"Added '{series_data.get('title')}'!"
             else:
-                return False, None, f"Sonarr returned status {response.status_code}: {response.text}"
+                return (
+                    False,
+                    None,
+                    f"Sonarr returned status {response.status_code}: {response.text}",
+                )
         except Exception as e:
             logger.error(f"Failed to add series to Sonarr: {e}")
             return False, None, f"Failed to add series: {str(e)}"
@@ -250,7 +271,6 @@ class MediaAgent:
             logger.error(f"Error getting series releases: {e}")
             return []
 
-
     # --- GENERAL RELEASE OPERATIONS & QUEUE ---
 
     async def download_release(self, app_type: str, release_payload: dict) -> tuple[bool, str]:
@@ -272,7 +292,10 @@ class MediaAgent:
                 return True, f"Triggered download for '{release_payload.get('title')}'!"
             else:
                 logger.error(f"Push release failed: status {response.status_code}, {response.text}")
-                return False, f"Server responded with status {response.status_code}: {response.text}"
+                return (
+                    False,
+                    f"Server responded with status {response.status_code}: {response.text}",
+                )
         except Exception as e:
             logger.error(f"Error pushing download release: {e}")
             return False, f"Failed to start download: {str(e)}"
@@ -280,13 +303,13 @@ class MediaAgent:
     async def get_download_queue(self) -> list[dict]:
         """Get the active download queue from both Radarr and Sonarr, with de-duplication."""
         unique_downloads = {}
-        
+
         # 1. Fetch Radarr queue (large page size to get all items)
         try:
             res = await self.client.get(
-                f"{self.radarr_url}/api/v3/queue", 
+                f"{self.radarr_url}/api/v3/queue",
                 headers={"X-Api-Key": self.radarr_api_key},
-                params={"pageSize": 1000}
+                params={"pageSize": 1000},
             )
             if res.status_code == 200:
                 data = res.json()
@@ -303,7 +326,7 @@ class MediaAgent:
                             "status": item.get("status", "unknown"),
                             "size": item.get("size", 0),
                             "sizeleft": item.get("sizeleft", 0),
-                            "timeleft": item.get("timeleft", "unknown")
+                            "timeleft": item.get("timeleft", "unknown"),
                         }
         except Exception as e:
             logger.error(f"Error fetching Radarr queue: {e}")
@@ -311,9 +334,9 @@ class MediaAgent:
         # 2. Fetch Sonarr queue (large page size to get all items)
         try:
             res = await self.client.get(
-                f"{self.sonarr_url}/api/v3/queue", 
+                f"{self.sonarr_url}/api/v3/queue",
                 headers={"X-Api-Key": self.sonarr_api_key},
-                params={"pageSize": 1000}
+                params={"pageSize": 1000},
             )
             if res.status_code == 200:
                 data = res.json()
@@ -329,9 +352,9 @@ class MediaAgent:
                             "status": item.get("status", "unknown"),
                             "size": item.get("size", 0),
                             "sizeleft": item.get("sizeleft", 0),
-                            "timeleft": item.get("timeleft", "unknown")
+                            "timeleft": item.get("timeleft", "unknown"),
                         }
         except Exception as e:
             logger.error(f"Error fetching Sonarr queue: {e}")
-            
+
         return list(unique_downloads.values())

@@ -1,6 +1,8 @@
 import logging
 import re
-from bot.config import TELEGRAM_BOT_TOKEN, SONARR_API_KEY, RADARR_API_KEY
+
+from bot.config import RADARR_API_KEY, SONARR_API_KEY, TELEGRAM_BOT_TOKEN
+
 
 class TokenRedactorFilter(logging.Filter):
     def __init__(self):
@@ -8,7 +10,7 @@ class TokenRedactorFilter(logging.Filter):
         self.secrets = []
         if TELEGRAM_BOT_TOKEN and TELEGRAM_BOT_TOKEN != "your_telegram_bot_token_here":
             self.secrets.append(TELEGRAM_BOT_TOKEN)
-            self.bot_token_pattern = re.compile(r'bot\d+:[A-Za-z0-9_-]+')
+            self.bot_token_pattern = re.compile(r"bot\d+:[A-Za-z0-9_-]+")
         else:
             self.bot_token_pattern = None
 
@@ -31,7 +33,7 @@ class TokenRedactorFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         if isinstance(record.msg, str):
             record.msg = self.redact(record.msg)
-            
+
         if record.args:
             new_args = []
             for arg in record.args:
@@ -44,6 +46,7 @@ class TokenRedactorFilter(logging.Filter):
                     new_args.append(redacted_str)
             record.args = tuple(new_args)
         return True
+
 
 def setup_logging_filters() -> None:
     """Register the TokenRedactorFilter to all active log handlers and loggers."""
