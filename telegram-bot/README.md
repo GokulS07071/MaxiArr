@@ -19,19 +19,12 @@ The bot retrieves its configuration from the central `.env` file in the project 
 
 ```env
 # Central environment settings (.env)
-
-# Telegram Bot Token (obtain from @BotFather on Telegram)
 TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
-
-# Whitelist of Telegram user IDs permitted to command the bot (comma-separated integers)
-# Leave empty to warn on startup and allow any user (insecure)
 ALLOWED_USER_IDS=your_telegram_user_id_here
 
-# Servarr API Keys
 SONARR_API_KEY=your_sonarr_api_key_here
 RADARR_API_KEY=your_radarr_api_key_here
 
-# Local testing URLs (defaults for host, overridden in Docker Compose)
 SONARR_URL=http://localhost:8989
 RADARR_URL=http://localhost:7878
 ```
