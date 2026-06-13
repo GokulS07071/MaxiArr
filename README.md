@@ -7,15 +7,36 @@ A self-contained Docker Compose media stack for automated media management using
 ## 1. Quick Start
 
 ### Step 1: Bootstrap Folder Layout
-Run the PowerShell script to create the necessary directories on your Windows host:
-```powershell
-.\setup.ps1
+Run the appropriate bootstrap script for your operating system to automatically create the required directory structure:
+
+*   **Windows (Command Prompt/PowerShell)**:
+    ```cmd
+    setup.bat
+    ```
+*   **Linux / macOS / WSL (Bash)**:
+    ```bash
+    chmod +x setup.sh
+    ./setup.sh
+    ```
+
+This will bootstrap the following folder layout relative to your workspace root:
+
 ```
-This will set up the following folders relative to the workspace:
-*   `./config/*` - Configuration folders for all container services.
-*   `./data/media/movies` & `tv` - Your media libraries.
-*   `./data/downloads/rdt` - Folder where RDT-Client saves downloads.
-*   `./data/downloads/torrents` - Folder where qBittorrent saves downloads.
+├── config/
+│   ├── gluetun/
+│   ├── prowlarr/
+│   ├── qbittorrent/
+│   ├── radarr/
+│   ├── rdtclient/
+│   └── sonarr/
+└── data/
+    ├── downloads/
+    │   ├── rdt/
+    │   └── torrents/
+    └── media/
+        ├── movies/
+        └── tv/
+```
 
 ### Step 2: Start the Containers
 *   **To run the primary AllDebrid stack (Sonarr, Radarr, Prowlarr, RDT-Client)**:
