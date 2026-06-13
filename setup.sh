@@ -37,5 +37,36 @@ for dir in "${directories[@]}"; do
     fi
 done
 
+# If running as root (e.g., via sudo), adjust ownership of all directories to PUID:PGID from .env
+if [ "$(id -u)" -eq 0 ]; then
+    puid=$(grep -E "^PUID=" .env | cut -d= -f2 | tr -d '\r')
+    pgid=$(grep -E "^PGID=" .env | cut -d= -f2 | tr -d '\r')
+    puid=${puid:-${SUDO_UID:-1000}}
+    pgid=${pgid:-${SUDO_GID:-1000}}
+    
+    echo -e "\n${YELLOW}Adjusting ownership of directories to $puid:$pgid...${NC}"
+    for dir in "${directories[@]}"; do
+        if [ -d "$dir" ]; then
+            chown -R "$puid:$pgid" "$dir"
+        fi
+    done
+else
+    # Check if any directories are not writable by the current user
+    non_writable=()
+    for dir in "${directories[@]}"; do
+        if [ -d "$dir" ] && [ ! -w "$dir" ]; then
+            non_writable+=("$dir")
+        fi
+    done
+
+    if [ ${#non_writable[@]} -ne 0 ]; then
+        echo -e "\n${YELLOW}Warning: The following directories are not writable by the current user:${NC}"
+        for dir in "${non_writable[@]}"; do
+            echo -e "  - $dir"
+        done
+        echo -e "${YELLOW}Please run the script with sudo (e.g., 'sudo ./setup.sh') to fix ownership.${NC}"
+    fi
+fi
+
 echo -e "\n${GREEN}Folder setup completed successfully!${NC}"
 echo -e "${CYAN}You can now run: docker compose up -d${NC}"
