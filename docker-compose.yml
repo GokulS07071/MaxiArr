@@ -105,3 +105,19 @@ services:
       - ${CONFIG_ROOT}/qbittorrent:/config
       - ${MEDIA_ROOT}:/data
     restart: unless-stopped
+
+  telegram-bot:
+    build:
+      context: ./telegram-bot
+      dockerfile: Dockerfile
+    container_name: telegram-bot
+    restart: unless-stopped
+    depends_on:
+      - sonarr
+      - radarr
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - SONARR_API_KEY=${SONARR_API_KEY}
+      - RADARR_API_KEY=${RADARR_API_KEY}
+      - SONARR_URL=http://sonarr:8989
+      - RADARR_URL=http://radarr:7878

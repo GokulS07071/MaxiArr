@@ -136,6 +136,21 @@ If you also want a normal client for direct torrenting through VPN:
 
 ---
 
+### F. Optional: Telegram Media Assistant Bot
+You can search and add media to Sonarr and Radarr, plus monitor active download queues, directly from Telegram:
+
+1. Open Telegram and message [@BotFather](https://t.me/BotFather) to create a new bot and get an API Token.
+2. In your `.env` file, set `TELEGRAM_BOT_TOKEN=your_token_here`.
+3. Rebuild and start the bot service:
+   ```bash
+   docker compose up -d --build telegram-bot
+   ```
+4. Find your bot in Telegram, click **Start**, and send your search queries!
+
+For more details on local configuration, manual testing, and command list, see the [Telegram Bot README](file:///f:/Projects/Personal/MaxiArr/telegram-bot/README.md).
+
+---
+
 ## 4. Troubleshooting & Zero-Copy Hardlinks
 *   **Path Mapping issues**: By using a single root mount `- ./data:/data` across Sonarr, Radarr, and RDT-Client, the containers share a unified view of the files. Downloads go to `/data/downloads/rdt` and media goes to `/data/media/tv`. Since they belong to the same mount point, Sonarr and Radarr can perform instant hardlinks or atomic moves without generating file copies or wearing down SSD write limits.
 *   **Check logs**:
