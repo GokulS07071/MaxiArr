@@ -121,3 +121,16 @@ services:
       - RADARR_API_KEY=${RADARR_API_KEY}
       - SONARR_URL=http://sonarr:8989
       - RADARR_URL=http://radarr:7878
+
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    container_name: seerr
+    environment:
+      LOG_LEVEL: info
+      TZ: ${TZ}
+      PORT: 5055
+    volumes:
+      - ${CONFIG_ROOT}/seerr:/app/config
+    ports:
+      - "5055:5055"
+    restart: unless-stopped

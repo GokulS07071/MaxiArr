@@ -28,10 +28,13 @@ This will bootstrap the following folder layout relative to your workspace root:
 │   ├── qbittorrent/
 │   ├── radarr/
 │   ├── rdtclient/
+│   ├── seerr/
 │   └── sonarr/
 └── data/
     ├── downloads/
     │   ├── rdt/
+    │   │   ├── radarr/
+    │   │   └── sonarr/
     │   └── torrents/
     └── media/
         ├── movies/
@@ -62,6 +65,7 @@ Once running, access the UIs from your local machine:
 | **Radarr** | `7878` | `7878` | [http://localhost:7878](http://localhost:7878) |
 | **Prowlarr** | `9696` | `9696` | [http://localhost:9696](http://localhost:9696) |
 | **RDT-Client** | `6500` | `6500` | [http://localhost:6500](http://localhost:6500) |
+| **Seerr** | `5055` | `5055` | [http://localhost:5055](http://localhost:5055) |
 | **qBittorrent** *(Optional)* | `8080` (Via Gluetun) | `8080` | [http://localhost:8080](http://localhost:8080) |
 
 > [!NOTE]
@@ -169,6 +173,27 @@ You can search and add media to Sonarr and Radarr, plus monitor active download 
 4. Find your bot in Telegram, click **Start**, and send your search queries!
 
 For more details on local configuration, manual testing, and command list, see the [Telegram Bot README](file:///f:/Projects/Personal/MaxiArr/telegram-bot/README.md).
+
+---
+
+### G. Seerr Setup (Request & Discovery Manager)
+Seerr is the unified successor to Overseerr and Jellyseerr. It allows users to browse and request movies and TV shows, which are automatically sent to Sonarr/Radarr.
+
+1. Open [http://localhost:5055](http://localhost:5055).
+2. Choose to sign in using your **Plex account** or create a local **Seerr account**.
+3. During setup, configure your media library connections (Plex, Jellyfin, or Emby) if applicable.
+4. Add **Radarr** and **Sonarr** services under **Settings > Services**:
+   *   Click **Add Service**.
+   *   Select **Radarr**:
+       *   **Hostname/IP**: `radarr` (using Docker DNS resolver)
+       *   **Port**: `7878`
+       *   **API Key**: Use the value of `RADARR_API_KEY` from your `.env` file.
+       *   Click **Test** and **Save**.
+   *   Select **Sonarr**:
+       *   **Hostname/IP**: `sonarr`
+       *   **Port**: `8989`
+       *   **API Key**: Use the value of `SONARR_API_KEY` from your `.env` file.
+       *   Click **Test** and **Save**.
 
 ---
 

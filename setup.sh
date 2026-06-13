@@ -19,9 +19,12 @@ directories=(
     "config/rdtclient"
     "config/qbittorrent"
     "config/gluetun"
+    "config/seerr"
     "data/media/movies"
     "data/media/tv"
     "data/downloads/rdt"
+    "data/downloads/rdt/radarr"
+    "data/downloads/rdt/sonarr"
     "data/downloads/torrents"
 )
 
