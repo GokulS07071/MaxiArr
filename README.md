@@ -66,6 +66,7 @@ Once running, access the UIs from your local machine:
 | **Prowlarr** | `9696` | `9696` | [http://localhost:9696](http://localhost:9696) |
 | **RDT-Client** | `6500` | `6500` | [http://localhost:6500](http://localhost:6500) |
 | **Seerr** | `5055` | `5055` | [http://localhost:5055](http://localhost:5055) |
+| **FlareSolverr** | `8191` | `8191` | [http://localhost:8191](http://localhost:8191) |
 | **qBittorrent** *(Optional)* | `8080` (Via Gluetun) | `8080` | [http://localhost:8080](http://localhost:8080) |
 
 > [!NOTE]
@@ -109,6 +110,13 @@ Prowlarr coordinates tracker indexers and pushes them to Sonarr and Radarr. The 
    *   **API Key**: Use the value of `RADARR_API_KEY` configured in your `.env` file.
    *   Click **Test**, then **Save**.
 5. Go to **Indexers**, click **Add New**, select your preferred authorized/public trackers, and Prowlarr will automatically sync them to both Sonarr and Radarr.
+6. **(Optional) Configure FlareSolverr Proxy**:
+   * Go to **Settings > Indexers** and click the **(+)** button under **Search Link / Proxies**.
+   * Select **FlareSolverr**:
+     * **Name**: `FlareSolverr`
+     * **Host**: `http://flaresolverr:8191`
+     * Click **Test**, then **Save**.
+   * Prowlarr will now route cloudflare-protected tracker queries through the FlareSolverr service automatically.
 
 ---
 
